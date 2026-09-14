@@ -28,16 +28,6 @@ interface ICounter {
   sequence: number;
 }
 
-const counterSchema = new Schema<ICounter>(
-  {
-    key: { type: String, unique: true, required: true },
-    sequence: { type: Number, default: 1000 },
-  },
-  { versionKey: false },
-);
-
-const Counter = mongoose.models.Counter || mongoose.model<ICounter>("Counter", counterSchema);
-
 const claimNoteSchema = new Schema<IClaimNote>(
   {
     author: {
@@ -106,20 +96,15 @@ claimSchema.pre("save", async function setClaimNumber() {
     return;
   }
 
-  const counter = await Counter.findOneAndUpdate(
+  const counters = mongoose.connection.collection<ICounter>("counters");
+  const result = await counters.findOneAndUpdate(
     { key: "claimNumber" },
-    [
-      {
-        $set: {
-          key: "claimNumber",
-          sequence: { $add: [{ $ifNull: ["$sequence", 1000] }, 1] },
-        },
-      },
-    ],
-    { upsert: true, returnDocument: "after", updatePipeline: true },
+    { $inc: { sequence: 1 }, $setOnInsert: { key: "claimNumber" } },
+    { upsert: true, returnDocument: "after" },
   );
 
-  this.claimNumber = `CLM-${counter.sequence}`;
+  const sequence = result?.sequence ?? 1;
+  this.claimNumber = `CLM-${1000 + sequence}`;
 });
 
 export const Claim = mongoose.model<IClaimDocument, ClaimModel>("Claim", claimSchema);
