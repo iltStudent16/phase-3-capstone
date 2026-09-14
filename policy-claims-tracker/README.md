@@ -50,6 +50,12 @@ docker compose up --build -d
 docker exec pct-api node dist/seed.js
 ```
 
+If local port `27017` is already in use on your machine, run:
+
+```bash
+MONGO_HOST_PORT=27018 docker compose up --build -d
+```
+
 Open `http://localhost:3000`.
 
 To stop:
