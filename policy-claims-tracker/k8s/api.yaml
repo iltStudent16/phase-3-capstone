@@ -17,8 +17,19 @@ spec:
         - name: api
           image: capstone-api:latest
           imagePullPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
           ports:
             - containerPort: 4000
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
           env:
             - name: PORT
               value: "4000"
@@ -58,4 +69,5 @@ spec:
   ports:
     - port: 4000
       targetPort: 4000
-  type: ClusterIP
+      nodePort: 30400
+  type: NodePort
